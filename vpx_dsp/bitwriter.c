@@ -11,8 +11,11 @@
 #include <assert.h>
 
 #include "./bitwriter.h"
+#include "entenc.h"
+#include <stdio.h>
 
 void vpx_start_encode(vpx_writer *br, uint8_t *source) {
+  od_ec_enc_init(&br->ec, 1000000);
   br->lowvalue = 0;
   br->range = 255;
   br->count = -24;
