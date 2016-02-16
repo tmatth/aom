@@ -137,7 +137,7 @@ struct macroblockd_plane {
   // encoder
   const int16_t *dequant;
 
-  // forward transformed predicted image, a reference for PVQ.
+  // PVQ: forward transformed predicted image, a reference for PVQ.
   tran_low_t *pvq_ref_coeff;
 };
 
