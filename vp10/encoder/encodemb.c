@@ -1052,7 +1052,8 @@ void vp10_encode_block_intra(int plane, int block, int blk_row, int blk_col,
   // existing VP10 transform functions
 
   // transform block size in pixels
-  int tx_blk_size = 1 << (tx_size + 2);
+  int tx_blk_size;
+  tx_blk_size = 1 << (tx_size + 2);
   int i, j;
   for (j=0; j < tx_blk_size; j++)
     for (i=0; i < tx_blk_size; i++) {
@@ -1068,7 +1069,7 @@ void vp10_encode_block_intra(int plane, int block, int blk_row, int blk_col,
         // For this, forward transform is applied to 1) predicted image
         // and 2) target original image.
         // Note that pvq in decoder also need to apply forward transform
-        // to predicted image.
+        // to predicted image to obtain reference vector.
 
         //forward transform of predicted image.
         fwd_txfm_32x32(x->use_lp32x32fdct, pred, pvq_ref_coeff, tx_blk_size,
