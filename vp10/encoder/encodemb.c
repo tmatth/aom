@@ -704,6 +704,9 @@ void vp10_xform_quant(MACROBLOCK *x, int plane, int block, int blk_row,
   const int16_t *src_diff;
   src_diff = &p->src_diff[4 * (blk_row * diff_stride + blk_col)];
 #else
+  const int16_t *src_diff;
+  src_diff = &p->src_diff[4 * (blk_row * diff_stride + blk_col)];
+
   tran_low_t *pvq_ref_coeff = BLOCK_OFFSET(pd->pvq_ref_coeff, block);
   uint8_t *src, *dst;
   int16_t *src_int16, *pred;
@@ -716,24 +719,6 @@ void vp10_xform_quant(MACROBLOCK *x, int plane, int block, int blk_row,
   src = &p->src.buf[4 * (blk_row * src_stride + blk_col)];
   src_int16 = &p->src_int16[4 * (blk_row * diff_stride + blk_col)];
   pred = &pd->pred[4 * (blk_row * diff_stride + blk_col)];
-
-  //debug : yushin
-  if (1 && plane == 0)
-  {
-    FILE *fp;
-    char fname[256];
-    sprintf(fname, "src_%dx%d.raw", 64, 64);
-    fp = fopen(fname, "wb");
-    for (j=0; j < 64; j++)
-      fwrite(p->src.buf + j * src_stride, 64, 1 ,fp);
-    fclose(fp);
-
-    sprintf(fname, "dst_%dx%d.raw", 64, 64);
-    fp = fopen(fname, "wb");
-    for (j=0; j < 64; j++)
-      fwrite(pd->dst.buf + j * dst_stride, 64, 1 ,fp);
-    fclose(fp);
-  }
 #endif
 
 #if CONFIG_VPX_HIGHBITDEPTH
@@ -810,22 +795,18 @@ void vp10_xform_quant(MACROBLOCK *x, int plane, int block, int blk_row,
   // in order to use existing VP10 transform functions
   for (j=0; j < tx_blk_size; j++)
     for (i=0; i < tx_blk_size; i++) {
+      int16_t diff = src_diff[diff_stride * j + i];
+      int16_t predicted = dst[dst_stride * j + i];
+      int16_t orig = src[src_stride * j + i];
+      int16_t orig__ = diff + predicted;
+      if (diff + predicted != orig) {
+        //printf("======== ERROR!\n\n");
+        printf("%d ", orig__ - orig); fflush(stdout);
+      }
       src_int16[tx_blk_size * j + i] = src[src_stride * j + i];
+      //src_int16[tx_blk_size * j + i] = orig__;
       pred[tx_blk_size * j + i] = dst[dst_stride * j + i];
     }
-
-  //debug : yushin
-  if (1 && plane == 0)
-  {
-    FILE *fp;
-    char fname[256];
-    sprintf(fname, "src_int16_%dx%d.raw", tx_blk_size, tx_blk_size);
-    fp = fopen(fname, "wb");
-    for (j=0; j < tx_blk_size; j++)
-      for (i=0; i < tx_blk_size; i++)
-        fwrite((uint8_t *)(src_int16 + j * tx_blk_size + i), 1, 1 ,fp);
-    fclose(fp);
-  }
 
   switch (tx_size) {
     case TX_32X32:
@@ -974,32 +955,8 @@ static void encode_block(int plane, int block, int blk_row, int blk_col,
   // transform block size in pixels
   tx_blk_size = 1 << (tx_size + 2);
 
-  //debug : yushin
-  if (1)
-  {
-    FILE *fp;
-    char fname[256];
-    sprintf(fname, "before_set_zero_iq_dst_%d_%d_%dx%d.raw", blk_row, blk_col, tx_blk_size, tx_blk_size);
-    fp = fopen(fname, "wb");
-    for (j=0; j < tx_blk_size; j++)
-      fwrite(pd->dst.buf + j * pd->dst.stride, tx_blk_size, 1 ,fp);
-    fclose(fp);
-  }
-
   for (j=0; j < tx_blk_size; j++)
     memset(dst + j * pd->dst.stride, 0, tx_blk_size);
-
-  //debug : yushin
-  if (1)
-  {
-    FILE *fp;
-    char fname[256];
-    sprintf(fname, "before_iq_dst_%d_%d_%dx%d.raw", blk_row, blk_col, tx_blk_size, tx_blk_size);
-    fp = fopen(fname, "wb");
-    for (j=0; j < tx_blk_size; j++)
-      fwrite(pd->dst.buf + j * pd->dst.stride, tx_blk_size, 1 ,fp);
-    fclose(fp);
-  }
 #endif
 
   switch (tx_size) {
@@ -1023,16 +980,6 @@ static void encode_block(int plane, int block, int blk_row, int blk_col,
                             tx_type, xd->lossless[xd->mi[0]->mbmi.segment_id]);
       break;
     default: assert(0 && "Invalid transform size"); break;
-  }
-  if (1)
-  {
-    FILE *fp;
-    char fname[256];
-    sprintf(fname, "after_iq_dst_%d_%d_%dx%d.raw", blk_row, blk_col, tx_blk_size, tx_blk_size);
-    fp = fopen(fname, "wb");
-    for (j=0; j < tx_blk_size; j++)
-      fwrite(pd->dst.buf + j * pd->dst.stride, tx_blk_size, 1 ,fp);
-    fclose(fp);
   }
 }
 

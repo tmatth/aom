@@ -410,6 +410,8 @@ static void set_rt_speed_feature(VP10_COMP *cpi, SPEED_FEATURES *sf, int speed,
     // For dev.
     sf->partition_search_type = FIXED_PARTITION;
     sf->always_this_block_size = BLOCK_32X32;
+    sf->default_max_partition_size = BLOCK_32X32;
+    sf->default_min_partition_size = BLOCK_32X32;
     //cpi->partition_search_skippable_frame = 0;
     sf->disable_filter_search_var_thresh = 5000;
   }
