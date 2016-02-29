@@ -339,7 +339,7 @@ void vp10_fwd_txfm_4x4(const int16_t *src_diff, tran_low_t *coeff,
   }
 }
 
-static void fwd_txfm_8x8(const int16_t *src_diff, tran_low_t *coeff,
+void fwd_txfm_8x8(const int16_t *src_diff, tran_low_t *coeff,
                          int diff_stride, TX_TYPE tx_type) {
   switch (tx_type) {
     case DCT_DCT:
@@ -350,7 +350,7 @@ static void fwd_txfm_8x8(const int16_t *src_diff, tran_low_t *coeff,
   }
 }
 
-static void fwd_txfm_16x16(const int16_t *src_diff, tran_low_t *coeff,
+void fwd_txfm_16x16(const int16_t *src_diff, tran_low_t *coeff,
                            int diff_stride, TX_TYPE tx_type) {
   switch (tx_type) {
     case DCT_DCT:
@@ -361,7 +361,7 @@ static void fwd_txfm_16x16(const int16_t *src_diff, tran_low_t *coeff,
   }
 }
 
-static void fwd_txfm_32x32(int rd_transform, const int16_t *src_diff,
+void fwd_txfm_32x32(int rd_transform, const int16_t *src_diff,
                            tran_low_t *coeff, int diff_stride,
                            TX_TYPE tx_type) {
   switch (tx_type) {
@@ -704,6 +704,7 @@ void vp10_xform_quant(MACROBLOCK *x, int plane, int block, int blk_row,
   src_diff = &p->src_diff[4 * (blk_row * diff_stride + blk_col)];
 #else
   tran_low_t *pvq_ref_coeff = BLOCK_OFFSET(pd->pvq_ref_coeff, block);
+  int16_t *pred = &pd->pred[4 * (blk_row * diff_stride + blk_col)];
   uint8_t *src, *dst;
   int16_t *src_int16;
   const int src_stride = p->src.stride;
@@ -713,7 +714,6 @@ void vp10_xform_quant(MACROBLOCK *x, int plane, int block, int blk_row,
   dst = &pd->dst.buf[4 * (blk_row * dst_stride + blk_col)];
   src = &p->src.buf[4 * (blk_row * src_stride + blk_col)];
   src_int16 = &p->src_int16[4 * (blk_row * diff_stride + blk_col)];
-  int16_t *pred = &pd->pred[4 * (blk_row * diff_stride + blk_col)];
 #endif
 
 #if CONFIG_VPX_HIGHBITDEPTH
@@ -854,7 +854,6 @@ static void encode_block(int plane, int block, int blk_row, int blk_col,
   int i, j;
 #if ENABLE_PVQ
   tran_low_t *pvq_ref_coeff = BLOCK_OFFSET(pd->pvq_ref_coeff, block);
-  //int16_t *pred = BLOCK_OFFSET(pd->pred, block);
   const int bwl = b_width_log2_lookup[plane_bsize];
   const int diff_stride = 4 * (1 << bwl);
   int16_t *pred = &pd->pred[4 * (blk_row * diff_stride + blk_col)];
@@ -1096,23 +1095,24 @@ void vp10_encode_block_intra(int plane, int block, int blk_row, int blk_col,
   const int bhl = b_height_log2_lookup[plane_bsize];
   const int diff_stride = 4 * (1 << bwl);
   uint8_t *src, *dst;
-  int16_t *src_diff;
   uint16_t *eob = &p->eobs[block];
   const int src_stride = p->src.stride;
   const int dst_stride = pd->dst.stride;
-#if ENABLE_PVQ
+#if !ENABLE_PVQ
+  int16_t *src_diff;
+  src_diff = &p->src_diff[4 * (blk_row * diff_stride + blk_col)];
+#else
   tran_low_t *pvq_ref_coeff = BLOCK_OFFSET(pd->pvq_ref_coeff, block);
   int16_t *src_int16;
   int tx_blk_size;
   int i, j;
   int16_t *pred = &pd->pred[4 * (blk_row * diff_stride + blk_col)];
-#endif
+  src_int16 = &p->src_int16[4 * (blk_row * diff_stride + blk_col)];
   // TODO (yushin): Make use of this return flag from pvq_encode()
   //int skip;
+#endif
   dst = &pd->dst.buf[4 * (blk_row * dst_stride + blk_col)];
   src = &p->src.buf[4 * (blk_row * src_stride + blk_col)];
-  src_diff = &p->src_diff[4 * (blk_row * diff_stride + blk_col)];
-  src_int16 = &p->src_int16[4 * (blk_row * diff_stride + blk_col)];
   mode = plane == 0 ? get_y_mode(xd->mi[0], block) : mbmi->uv_mode;
   vp10_predict_intra_block(xd, bwl, bhl, tx_size, mode, dst, dst_stride, dst,
                            dst_stride, blk_col, blk_row, plane);
