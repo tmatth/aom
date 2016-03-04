@@ -138,8 +138,10 @@ struct macroblockd_plane {
   // encoder
   const int16_t *dequant;
 
+#if CONFIG_PVQ
   // PVQ: forward transformed predicted image, a reference for PVQ.
   tran_low_t *pvq_ref_coeff;
+#endif
 };
 
 #define BLOCK_OFFSET(x, i) ((x) + (i)*16)
