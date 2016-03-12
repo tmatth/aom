@@ -31,8 +31,7 @@ int vpx_reader_init(vpx_reader *r, const uint8_t *buffer, size_t size,
     r->decrypt_cb = decrypt_cb;
     r->decrypt_state = decrypt_state;
 #if DAALA_ENTROPY_CODER
-    // drop last byte because it's always zero
-    od_ec_dec_init(&r->ec, buffer, size - 1);
+    od_ec_dec_init(&r->ec, buffer, size);
     return 0;
 #else
     vpx_reader_fill(r);
