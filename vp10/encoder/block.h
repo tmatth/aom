@@ -26,7 +26,6 @@ typedef struct {
 
 struct macroblock_plane {
   DECLARE_ALIGNED(16, int16_t, src_diff[64 * 64]);
-  DECLARE_ALIGNED(16, int16_t, src_int16[64 * 64]);
   tran_low_t *qcoeff;
   tran_low_t *coeff;
   uint16_t *eobs;
@@ -41,6 +40,11 @@ struct macroblock_plane {
   int16_t *round;
 
   int64_t quant_thred[2];
+
+#if CONFIG_PVQ
+  // PVQ: temporary buffer to hold int16 version of original image block.
+  DECLARE_ALIGNED(16, int16_t, src_int16[64 * 64]);
+#endif
 };
 
 /* The [2] dimension is for whether we skip the EOB node (i.e. if previous

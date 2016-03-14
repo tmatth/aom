@@ -49,4 +49,3 @@ void vpx_stop_encode(vpx_writer *br) {
   if ((br->buffer[br->pos - 1] & 0xe0) == 0xc0) br->buffer[br->pos++] = 0;
 #endif
 }
-

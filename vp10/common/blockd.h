@@ -123,7 +123,6 @@ struct buf_2d {
 };
 
 struct macroblockd_plane {
-  DECLARE_ALIGNED(16, int16_t, pred[64 * 64]);
   tran_low_t *dqcoeff;
   PLANE_TYPE plane_type;
   int subsampling_x;
@@ -151,6 +150,8 @@ struct macroblockd_plane {
 #endif
 
 #if CONFIG_PVQ
+  // PVQ: temporary buffer to hold int16 version of predicted image block.
+  DECLARE_ALIGNED(16, int16_t, pred[64 * 64]);
   // PVQ: forward transformed predicted image, a reference for PVQ.
   tran_low_t *pvq_ref_coeff;
 #endif
